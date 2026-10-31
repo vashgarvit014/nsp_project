@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Error {{ code }}{% endblock %}
+{% block header %}Error{% endblock %}
+{% block content %}
+<div class="card-panel text-center">
+    <h1 class="display-4 text-primary">{{ code }}</h1>
+    <p class="text-muted">{{ message }}</p>
+    <a href="{{ url_for('index') }}" class="btn btn-primary mt-2">Go to Dashboard</a>
+</div>
+{% endblock %}
+{% block guest_content %}
+<div class="login-page">
+    <div class="login-card text-center">
+        <h1 class="display-4 text-primary">{{ code }}</h1>
+        <p class="text-muted">{{ message }}</p>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-primary mt-2">Go to Login</a>
+    </div>
+</div>
+{% endblock %}

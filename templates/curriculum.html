@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Curriculum{% endblock %}
+{% block header %}Curriculum Tracking{% endblock %}
+{% block content %}
+
+{% if is_teacher_view %}
+<div class="card-panel">
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">{{ subject.name }} ({{ subject.code }})</h6>
+        <a href="{{ url_for('teacher.subjects') }}" class="btn btn-sm btn-outline-secondary">Back to Subjects</a>
+    </div>
+</div>
+
+<div class="card-panel">
+    <form method="POST" action="{{ url_for('curriculum.add_unit', subject_id=subject.id) }}" class="d-flex gap-2 mb-4">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="text" name="title" class="form-control" placeholder="New unit title (e.g. Unit 1: Introduction)" required>
+        <button class="btn btn-primary"><i class="bi bi-plus-lg"></i> Add Unit</button>
+    </form>
+
+    {% for unit in subject.units %}
+    <div class="unit-block">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h6 class="mb-0">{{ unit.title }}</h6>
+            <div class="d-flex align-items-center gap-2" style="width: 220px;">
+                <div class="progress flex-grow-1">
+                    <div class="progress-bar bg-success" style="width: {{ unit.completion_percentage() }}%"></div>
+                </div>
+                <span class="small">{{ unit.completion_percentage() }}%</span>
+            </div>
+        </div>
+
+        {% for topic in unit.topics %}
+        <div class="topic-row {{ 'completed' if topic.completed }}">
+            <form method="POST" action="{{ url_for('curriculum.toggle_topic', topic_id=topic.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn btn-sm {{ 'btn-success' if topic.completed else 'btn-outline-secondary' }}">
+                    <i class="bi {{ 'bi-check-lg' if topic.completed else 'bi-circle' }}"></i>
+                </button>
+            </form>
+            <span class="topic-title">{{ topic.title }}</span>
+        </div>
+        {% else %}
+        <p class="text-muted small mb-2">No topics added yet.</p>
+        {% endfor %}
+
+        <form method="POST" action="{{ url_for('curriculum.add_topic', unit_id=unit.id) }}" class="d-flex gap-2 mt-2">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="text" name="title" class="form-control form-control-sm" placeholder="New topic title">
+            <button class="btn btn-sm btn-outline-primary">Add Topic</button>
+        </form>
+    </div>
+    {% else %}
+    <p class="text-muted">No units added yet. Add the first unit above.</p>
+    {% endfor %}
+</div>
+
+{% else %}
+{% for subject in subjects %}
+<div class="card-panel">
+    <h6 class="mb-3">{{ subject.name }} ({{ subject.code }})</h6>
+    {% for unit in subject.units %}
+    <div class="unit-block">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <strong>{{ unit.title }}</strong>
+            <div class="d-flex align-items-center gap-2" style="width: 200px;">
+                <div class="progress flex-grow-1">
+                    <div class="progress-bar bg-success" style="width: {{ unit.completion_percentage() }}%"></div>
+                </div>
+                <span class="small">{{ unit.completion_percentage() }}%</span>
+            </div>
+        </div>
+        {% for topic in unit.topics %}
+        <div class="topic-row {{ 'completed' if topic.completed }}">
+            <i class="bi {{ 'bi-check-circle-fill text-success' if topic.completed else 'bi-circle' }}"></i>
+            <span class="topic-title">{{ topic.title }}</span>
+        </div>
+        {% else %}
+        <p class="text-muted small mb-0">No topics added yet.</p>
+        {% endfor %}
+    </div>
+    {% else %}
+    <p class="text-muted">Syllabus not added yet.</p>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card-panel text-muted text-center">You are not enrolled in any subjects yet.</div>
+{% endfor %}
+{% endif %}
+
+{% endblock %}

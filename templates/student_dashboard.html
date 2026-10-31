@@ -1,0 +1,99 @@
+{% extends "base.html" %}
+{% block title %}Student Dashboard{% endblock %}
+{% block header %}Welcome, {{ student.full_name }}{% endblock %}
+{% block content %}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <i class="bi bi-check2-circle stat-icon"></i>
+            <div class="stat-value">{{ overall_pct }}%</div>
+            <div class="stat-label">Overall Attendance</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <i class="bi bi-journal-bookmark-fill stat-icon"></i>
+            <div class="stat-value">{{ total_subjects }}</div>
+            <div class="stat-label">Enrolled Subjects</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <i class="bi bi-graph-up stat-icon"></i>
+            <div class="stat-value">{{ curriculum_progress }}%</div>
+            <div class="stat-label">Curriculum Progress</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <i class="bi bi-calendar-event-fill stat-icon"></i>
+            <div class="stat-value">{{ upcoming_activities|length }}</div>
+            <div class="stat-label">Upcoming Activities</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card-panel">
+            <h6 class="mb-3">Subject-wise Attendance</h6>
+            <canvas id="attendanceChart" height="160"></canvas>
+            <table class="table mt-3">
+                <thead><tr><th>Subject</th><th>Conducted</th><th>Attended</th><th>Percentage</th></tr></thead>
+                <tbody>
+                {% for row in subject_stats %}
+                    <tr>
+                        <td>{{ row.subject.name }}</td>
+                        <td>{{ row.conducted }}</td>
+                        <td>{{ row.attended }}</td>
+                        <td>
+                            <span class="badge {{ 'badge-good' if row.percentage >= 75 else 'badge-bad' }}">{{ row.percentage }}%</span>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4" class="text-muted">Not enrolled in any subjects yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class="col-md-5">
+        <div class="card-panel">
+            <h6 class="mb-3">Upcoming Activities</h6>
+            <ul class="list-group list-group-flush">
+                {% for activity in upcoming_activities %}
+                <li class="list-group-item">
+                    <div class="fw-semibold">{{ activity.title }}</div>
+                    <div class="text-muted small">{{ activity.subject.name }} &middot; Due {{ activity.due_date }}</div>
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">No upcoming activities.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const ctx = document.getElementById('attendanceChart');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ subject_stats|map(attribute='subject.name')|list|tojson }},
+        datasets: [{
+            label: 'Attendance %',
+            data: {{ subject_stats|map(attribute='percentage')|list|tojson }},
+            backgroundColor: '#2f5dff',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        scales: { y: { beginAtZero: true, max: 100 } },
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Student Profile{% endblock %}
+{% block header %}Student Profile{% endblock %}
+{% block content %}
+
+<div class="row g-3">
+    <div class="col-md-4">
+        <div class="card-panel text-center">
+            <i class="bi bi-person-circle" style="font-size: 3rem; color: var(--primary);"></i>
+            <h5 class="mt-2 mb-0">{{ student.full_name }}</h5>
+            <p class="text-muted mb-0">{{ student.roll_number }}</p>
+            <hr>
+            <p class="mb-1"><strong>Email:</strong> {{ student.email }}</p>
+            <p class="mb-1"><strong>Semester:</strong> {{ student.semester }}</p>
+            <p class="mb-1"><strong>Section:</strong> {{ student.section }}</p>
+            <p class="mb-0"><strong>Department:</strong> {{ student.department }}</p>
+        </div>
+
+        {% if is_teacher_view and available_subjects %}
+        <div class="card-panel">
+            <h6 class="mb-3">Enroll in Subject</h6>
+            <form method="POST" action="{{ url_for('teacher.enroll_student', student_id=student.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <select name="subject_id" class="form-select mb-2" required>
+                    {% for s in available_subjects %}
+                    <option value="{{ s.id }}">{{ s.name }} ({{ s.code }})</option>
+                    {% endfor %}
+                </select>
+                <button class="btn btn-primary w-100">Enroll</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-md-8">
+        <div class="card-panel">
+            <h6 class="mb-3">Subject-wise Attendance</h6>
+            <table class="table">
+                <thead><tr><th>Subject</th><th>Conducted</th><th>Attended</th><th>Percentage</th></tr></thead>
+                <tbody>
+                {% for row in subject_stats %}
+                    <tr>
+                        <td>{{ row.subject.name }}</td>
+                        <td>{{ row.conducted }}</td>
+                        <td>{{ row.attended }}</td>
+                        <td><span class="badge {{ 'badge-good' if row.percentage >= 75 else 'badge-bad' }}">{{ row.percentage }}%</span></td>
+                    </tr>
+                {% else %}
+                    <tr><td colspan="4" class="text-muted text-center">Not enrolled in any subjects yet.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

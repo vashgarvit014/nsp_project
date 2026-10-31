@@ -1,0 +1,91 @@
+{% extends "base.html" %}
+{% block title %}Activities{% endblock %}
+{% block header %}Academic Activities{% endblock %}
+{% block content %}
+
+{% if is_teacher_view %}
+<div class="card-panel">
+    <h6 class="mb-3">Create Activity</h6>
+    <form method="POST" action="{{ url_for('activities.add_activity') }}" class="row g-2">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="col-md-3">
+            <select name="subject_id" class="form-select" required>
+                <option value="">Subject</option>
+                {% for s in subjects %}
+                <option value="{{ s.id }}">{{ s.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <input type="text" name="title" class="form-control" placeholder="Title" required>
+        </div>
+        <div class="col-md-2">
+            <select name="activity_type" class="form-select" required>
+                <option value="">Type</option>
+                {% for t in activity_types %}
+                <option value="{{ t }}">{{ t }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <input type="date" name="due_date" class="form-control" required>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-primary w-100">Create</button>
+        </div>
+        <div class="col-12">
+            <input type="text" name="description" class="form-control" placeholder="Description (optional)">
+        </div>
+    </form>
+</div>
+{% endif %}
+
+<div class="card-panel">
+    <h6 class="mb-3">All Activities</h6>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Title</th><th>Subject</th><th>Type</th><th>Due Date</th><th>Status</th>{% if is_teacher_view %}<th></th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+        {% for activity in activities %}
+            <tr>
+                <td>
+                    {{ activity.title }}
+                    {% if activity.description %}<div class="text-muted small">{{ activity.description }}</div>{% endif %}
+                </td>
+                <td>{{ activity.subject.name }}</td>
+                <td>{{ activity.activity_type }}</td>
+                <td>{{ activity.due_date }}</td>
+                <td>
+                    <span class="badge {{ 'badge-good' if activity.status == 'completed' else 'text-bg-warning' }}">{{ activity.status }}</span>
+                </td>
+                {% if is_teacher_view %}
+                <td class="text-end">
+                    <form method="POST" action="{{ url_for('activities.edit_activity', activity_id=activity.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="title" value="{{ activity.title }}">
+                        <input type="hidden" name="description" value="{{ activity.description }}">
+                        <input type="hidden" name="activity_type" value="{{ activity.activity_type }}">
+                        <input type="hidden" name="due_date" value="{{ activity.due_date }}">
+                        <input type="hidden" name="status" value="{{ 'completed' if activity.status == 'upcoming' else 'upcoming' }}">
+                        <button class="btn btn-sm btn-outline-secondary" title="Toggle status">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </button>
+                    </form>
+                    <form method="POST" action="{{ url_for('activities.delete_activity', activity_id=activity.id) }}" class="d-inline">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button class="btn btn-sm btn-outline-danger" title="Delete"><i class="bi bi-trash"></i></button>
+                    </form>
+                </td>
+                {% endif %}
+            </tr>
+        {% else %}
+            <tr><td colspan="6" class="text-muted text-center">No activities yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

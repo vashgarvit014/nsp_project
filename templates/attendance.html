@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block title %}Mark Attendance{% endblock %}
+{% block header %}Attendance Management{% endblock %}
+{% block content %}
+
+<div class="card-panel">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-5">
+            <label class="form-label">Subject</label>
+            <select name="subject_id" class="form-select" onchange="this.form.submit()">
+                <option value="">Select a subject</option>
+                {% for s in subjects %}
+                <option value="{{ s.id }}" {{ 'selected' if selected_subject and selected_subject.id == s.id }}>{{ s.name }} ({{ s.code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label">Class Date</label>
+            <input type="date" name="session_date" class="form-control" value="{{ session_date }}" max="{{ today }}" onchange="this.form.submit()">
+        </div>
+        <div class="col-md-3">
+            <button class="btn btn-outline-primary w-100">Load</button>
+        </div>
+    </form>
+</div>
+
+{% if selected_subject and session_date %}
+<div class="card-panel">
+    <h6 class="mb-3">{{ selected_subject.name }} &middot; {{ session_date }}</h6>
+    {% if enrolled_students %}
+    <form method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input type="hidden" name="subject_id" value="{{ selected_subject.id }}">
+        <input type="hidden" name="session_date" value="{{ session_date }}">
+        <table class="table">
+            <thead><tr><th>Roll No.</th><th>Name</th><th>Status</th></tr></thead>
+            <tbody>
+            {% for student in enrolled_students %}
+                <tr>
+                    <td>{{ student.roll_number }}</td>
+                    <td>{{ student.full_name }}</td>
+                    <td>
+                        <div class="btn-group" role="group">
+                            <input type="radio" class="btn-check" name="status_{{ student.id }}" id="present_{{ student.id }}" value="present"
+                                   {{ 'checked' if existing_records.get(student.id, 'present') == 'present' }}>
+                            <label class="btn btn-outline-success btn-sm" for="present_{{ student.id }}">Present</label>
+
+                            <input type="radio" class="btn-check" name="status_{{ student.id }}" id="absent_{{ student.id }}" value="absent"
+                                   {{ 'checked' if existing_records.get(student.id) == 'absent' }}>
+                            <label class="btn btn-outline-danger btn-sm" for="absent_{{ student.id }}">Absent</label>
+                        </div>
+                    </td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" class="btn btn-primary">Save Attendance</button>
+    </form>
+    {% else %}
+    <p class="text-muted">No students enrolled in this subject yet.</p>
+    {% endif %}
+</div>
+{% endif %}
+
+{% endblock %}

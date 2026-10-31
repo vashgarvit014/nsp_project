@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}Smart Curriculum & Attendance System{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap.min.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='vendor/bootstrap-icons.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+{% if session.get('user_id') %}
+<div class="app-wrapper">
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <i class="bi bi-mortarboard-fill"></i>
+            <span>SCAMS</span>
+        </div>
+        <ul class="nav flex-column sidebar-nav">
+            {% if session.get('role') == 'teacher' %}
+            <li><a href="{{ url_for('teacher.dashboard') }}" class="{{ 'active' if request.endpoint == 'teacher.dashboard' }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('teacher.students') }}" class="{{ 'active' if request.endpoint and request.endpoint.startswith('teacher.') and 'student' in request.endpoint }}"><i class="bi bi-people-fill"></i> Students</a></li>
+            <li><a href="{{ url_for('teacher.subjects') }}" class="{{ 'active' if request.endpoint and 'subject' in request.endpoint }}"><i class="bi bi-journal-bookmark-fill"></i> Subjects</a></li>
+            <li><a href="{{ url_for('attendance.mark') }}" class="{{ 'active' if request.endpoint == 'attendance.mark' }}"><i class="bi bi-check2-square"></i> Attendance</a></li>
+            <li><a href="{{ url_for('attendance.report') }}" class="{{ 'active' if request.endpoint == 'attendance.report' }}"><i class="bi bi-bar-chart-fill"></i> Attendance Report</a></li>
+            <li><a href="{{ url_for('activities.list_activities') }}" class="{{ 'active' if request.endpoint and 'activities' in request.endpoint }}"><i class="bi bi-calendar-event-fill"></i> Activities</a></li>
+            {% else %}
+            <li><a href="{{ url_for('student.dashboard') }}" class="{{ 'active' if request.endpoint == 'student.dashboard' }}"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+            <li><a href="{{ url_for('curriculum.student_curriculum') }}" class="{{ 'active' if request.endpoint == 'curriculum.student_curriculum' }}"><i class="bi bi-journal-text"></i> Curriculum</a></li>
+            <li><a href="{{ url_for('activities.student_activities') }}" class="{{ 'active' if request.endpoint == 'activities.student_activities' }}"><i class="bi bi-calendar-event-fill"></i> Activities</a></li>
+            <li><a href="{{ url_for('student.profile') }}" class="{{ 'active' if request.endpoint == 'student.profile' }}"><i class="bi bi-person-fill"></i> Profile</a></li>
+            {% endif %}
+        </ul>
+    </nav>
+
+    <div class="main-area">
+        <header class="topbar">
+            <div class="topbar-title">{% block header %}{% endblock %}</div>
+            <div class="topbar-user">
+                <span class="me-2"><i class="bi bi-person-circle"></i> {{ session.get('name') }} <span class="badge text-bg-primary">{{ session.get('role')|capitalize }}</span></span>
+                <a href="{{ url_for('auth.logout') }}" class="btn btn-sm btn-outline-secondary"><i class="bi bi-box-arrow-right"></i> Logout</a>
+            </div>
+        </header>
+        <main class="content-area">
+            {% include "_flash.html" %}
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+</div>
+{% else %}
+    {% include "_flash.html" %}
+    {% block guest_content %}{% endblock %}
+{% endif %}
+
+<script src="{{ url_for('static', filename='vendor/bootstrap.bundle.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/chart.min.js') }}"></script>
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

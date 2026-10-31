@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% block title %}Teacher Dashboard{% endblock %}
+{% block header %}Teacher Dashboard{% endblock %}
+{% block content %}
+
+<div class="row g-3 mb-3">
+    <div class="col-md-3">
+        <div class="stat-card">
+            <i class="bi bi-people-fill stat-icon"></i>
+            <div class="stat-value">{{ total_students }}</div>
+            <div class="stat-label">Total Students</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <i class="bi bi-journal-bookmark-fill stat-icon"></i>
+            <div class="stat-value">{{ total_subjects }}</div>
+            <div class="stat-label">Subjects Assigned</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <i class="bi bi-check2-circle stat-icon"></i>
+            <div class="stat-value">{{ avg_attendance }}%</div>
+            <div class="stat-label">Avg. Attendance</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="stat-card">
+            <i class="bi bi-calendar-event-fill stat-icon"></i>
+            <div class="stat-value">{{ total_activities }}</div>
+            <div class="stat-label">Academic Activities</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-7">
+        <div class="card-panel">
+            <h6 class="mb-3">Subject-wise Average Attendance</h6>
+            <canvas id="attendanceChart" height="160"></canvas>
+        </div>
+
+        <div class="card-panel">
+            <h6 class="mb-3">Curriculum Completion</h6>
+            <div class="d-flex align-items-center gap-3">
+                <div class="progress flex-grow-1">
+                    <div class="progress-bar bg-primary" style="width: {{ curriculum_completion }}%"></div>
+                </div>
+                <span class="fw-bold">{{ curriculum_completion }}%</span>
+            </div>
+            <ul class="list-unstyled mt-3 mb-0">
+                {% for subject in subjects %}
+                <li class="d-flex justify-content-between border-bottom py-2">
+                    <span>{{ subject.name }}</span>
+                    <a href="{{ url_for('curriculum.subject_curriculum', subject_id=subject.id) }}" class="small">Manage &rarr;</a>
+                </li>
+                {% else %}
+                <li class="text-muted">No subjects yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <div class="card-panel">
+            <h6 class="mb-3"><i class="bi bi-exclamation-triangle-fill text-danger"></i> Students Below 75% Attendance</h6>
+            <ul class="list-group list-group-flush">
+                {% for row in low_attendance_students %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="fw-semibold">{{ row.student.full_name }}</div>
+                        <div class="text-muted small">{{ row.subject }}</div>
+                    </div>
+                    <span class="badge badge-bad">{{ row.percentage }}%</span>
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">No students below 75% attendance.</li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="card-panel">
+            <h6 class="mb-3">Recent Activities</h6>
+            <ul class="list-group list-group-flush">
+                {% for activity in recent_activities %}
+                <li class="list-group-item">
+                    <div class="fw-semibold">{{ activity.title }}</div>
+                    <div class="text-muted small">{{ activity.subject.name }} &middot; Due {{ activity.due_date }}</div>
+                </li>
+                {% else %}
+                <li class="list-group-item text-muted">No activities yet.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block scripts %}
+<script>
+const ctx = document.getElementById('attendanceChart');
+new Chart(ctx, {
+    type: 'bar',
+    data: {
+        labels: {{ chart_labels|tojson }},
+        datasets: [{
+            label: 'Avg Attendance %',
+            data: {{ chart_data|tojson }},
+            backgroundColor: '#2f5dff',
+            borderRadius: 6
+        }]
+    },
+    options: {
+        scales: { y: { beginAtZero: true, max: 100 } },
+        plugins: { legend: { display: false } }
+    }
+});
+</script>
+{% endblock %}

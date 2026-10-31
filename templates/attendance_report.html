@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Attendance Report{% endblock %}
+{% block header %}Attendance Report{% endblock %}
+{% block content %}
+
+<div class="card-panel">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-6">
+            <label class="form-label">Subject</label>
+            <select name="subject_id" class="form-select" onchange="this.form.submit()">
+                <option value="">Select a subject</option>
+                {% for s in subjects %}
+                <option value="{{ s.id }}" {{ 'selected' if selected_subject and selected_subject.id == s.id }}>{{ s.name }} ({{ s.code }})</option>
+                {% endfor %}
+            </select>
+        </div>
+    </form>
+</div>
+
+{% if selected_subject %}
+<div class="card-panel">
+    <h6 class="mb-3">{{ selected_subject.name }} &middot; Attendance Summary</h6>
+    <table class="table">
+        <thead><tr><th>Roll No.</th><th>Name</th><th>Conducted</th><th>Attended</th><th>Percentage</th><th>Status</th></tr></thead>
+        <tbody>
+        {% for row in rows %}
+            <tr>
+                <td>{{ row.student.roll_number }}</td>
+                <td>{{ row.student.full_name }}</td>
+                <td>{{ row.conducted }}</td>
+                <td>{{ row.attended }}</td>
+                <td>{{ row.percentage }}%</td>
+                <td>
+                    {% if row.percentage >= 75 %}
+                    <span class="badge badge-good">Good</span>
+                    {% else %}
+                    <span class="badge badge-bad">Low</span>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="6" class="text-muted text-center">No enrolled students for this subject.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+{% endblock %}

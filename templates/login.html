@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}Login - Smart Curriculum & Attendance System{% endblock %}
+{% block guest_content %}
+<div class="login-page">
+    <div class="login-card">
+        <div class="brand">
+            <i class="bi bi-mortarboard-fill"></i>
+            <h4 class="mt-2 mb-0">Smart Curriculum &amp;<br>Attendance Management</h4>
+        </div>
+        <form method="POST" action="{{ url_for('auth.login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <div class="mb-3">
+                <label class="form-label">Email address</label>
+                <input type="email" name="email" class="form-control" required autofocus placeholder="you@example.com">
+            </div>
+            <div class="mb-3">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-control" required placeholder="Password">
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Sign In</button>
+        </form>
+        <p class="text-muted text-center mt-3 mb-0" style="font-size: 0.85rem;">
+            Use the demo accounts created by <code>seed.py</code>.
+        </p>
+    </div>
+</div>
+{% endblock %}
