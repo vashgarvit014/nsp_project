@@ -148,13 +148,22 @@ def populate():
             db.session.add(StudentSubjectEnrollment(student_id=student.id, subject_id=subject.id))
     db.session.flush()
 
+    # Kept deliberately small: each class session + its attendance rows is a
+    # network round trip against a remote (Turso) database on serverless
+    # deployments, and a long-lived connection over Wi-Fi is prone to being
+    # reset mid-batch if there's too much to push through in one go.
     today = date.today()
     for subject in subjects.values():
         creator_id = subject.created_by
-        for days_ago in range(15, 0, -1):
-            session_date = today - timedelta(days=days_ago)
-            if session_date.weekday() >= 5:
-                continue
+        session_dates = []
+        days_ago = 1
+        while len(session_dates) < 6 and days_ago < 15:
+            candidate = today - timedelta(days=days_ago)
+            if candidate.weekday() < 5:
+                session_dates.append(candidate)
+            days_ago += 1
+
+        for session_date in session_dates:
             class_session = ClassSession(
                 subject_id=subject.id, session_date=session_date, created_by=creator_id
             )
@@ -167,6 +176,7 @@ def populate():
                 db.session.add(
                     Attendance(session_id=class_session.id, student_id=student.id, status=status)
                 )
+            db.session.commit()
 
     for title, activity_type, subject_name, offset_days in ACTIVITIES:
         subject = subjects[subject_name]
