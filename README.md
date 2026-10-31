@@ -134,6 +134,33 @@ Tests cover: login (valid/invalid), role-based access control, adding/editing
 students, marking attendance (including duplicate-prevention and percentage
 calculation), syllabus progress updates, and activity creation.
 
+## Deployment (Render)
+
+This app needs a real persistent process, not a serverless platform — SQLite
+requires a writable filesystem that stays around between requests, which
+rules out platforms like Vercel. [Render](https://render.com) runs Flask as
+a normal long-lived process and is free for a project like this.
+
+1. Push this repo to GitHub (already done if you're reading this there).
+2. On [render.com](https://render.com), click **New > Web Service** and
+   connect this GitHub repo. Render will detect `render.yaml` and
+   pre-fill the build/start commands automatically.
+3. If configuring manually instead, set:
+   - **Build Command:** `pip install -r requirements.txt`
+   - **Start Command:** `python -c "from seed import seed_if_empty; seed_if_empty()" && gunicorn app:app --bind 0.0.0.0:$PORT`
+   - **Environment Variable:** `SECRET_KEY` — any random string (Render can
+     generate one for you).
+4. Deploy. The start command seeds demo accounts automatically the first
+   time, and leaves data alone on later restarts as long as the database
+   already has users.
+
+**Free-tier caveat:** Render's free web services use an ephemeral disk, so if
+the service fully spins down from inactivity and a new instance is created,
+the SQLite database resets and reseeds itself with fresh demo data. This is
+fine for a project demo but isn't durable storage — for a real deployment
+you'd want Render's paid persistent disk or a hosted Postgres database
+instead of SQLite.
+
 ## Screenshots
 
 _Add screenshots of the Login page, Teacher Dashboard, Student Dashboard,
