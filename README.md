@@ -134,12 +134,14 @@ Tests cover: login (valid/invalid), role-based access control, adding/editing
 students, marking attendance (including duplicate-prevention and percentage
 calculation), syllabus progress updates, and activity creation.
 
-## Deployment (Render)
+## Deployment
 
-This app needs a real persistent process, not a serverless platform — SQLite
-requires a writable filesystem that stays around between requests, which
-rules out platforms like Vercel. [Render](https://render.com) runs Flask as
-a normal long-lived process and is free for a project like this.
+Two supported options, depending on what you want:
+
+### Option A — Render (simplest, plain SQLite)
+
+[Render](https://render.com) runs Flask as a normal long-lived process with
+a writable filesystem, so plain SQLite works with no extra setup.
 
 1. Push this repo to GitHub (already done if you're reading this there).
 2. On [render.com](https://render.com), click **New > Web Service** and
@@ -158,8 +160,38 @@ a normal long-lived process and is free for a project like this.
 the service fully spins down from inactivity and a new instance is created,
 the SQLite database resets and reseeds itself with fresh demo data. This is
 fine for a project demo but isn't durable storage — for a real deployment
-you'd want Render's paid persistent disk or a hosted Postgres database
-instead of SQLite.
+you'd want Render's paid persistent disk, or Option B below.
+
+### Option B — Vercel + Turso (serverless, persistent)
+
+Vercel's Python functions have a read-only, ephemeral filesystem, so plain
+SQLite doesn't work there — writes vanish between requests and aren't shared
+across concurrent instances. [Turso](https://turso.tech) is a free hosted
+database that speaks the SQLite protocol (libSQL) over the network, so the
+app keeps using SQLAlchemy/SQLite semantics but gets real persistence on
+Vercel. This repo already contains `api/index.py` (the Vercel entrypoint),
+`api/requirements.txt` (adds the `sqlalchemy-libsql` dialect, kept separate
+from the root `requirements.txt` so local/Render setups stay simple), and
+`vercel.json`.
+
+1. **Create a free Turso database:**
+   ```bash
+   curl -sSfL https://get.tur.so/install.sh | bash
+   turso auth login              # opens a browser to sign up/log in
+   turso db create nsp-project
+   turso db show nsp-project --url      # -> TURSO_DATABASE_URL
+   turso db tokens create nsp-project   # -> TURSO_AUTH_TOKEN
+   ```
+2. **Import the repo into Vercel:** [vercel.com/new](https://vercel.com/new) →
+   select this GitHub repo → it will detect `vercel.json` automatically.
+3. **Set environment variables** in the Vercel project settings:
+   - `SECRET_KEY` — any random string
+   - `TURSO_DATABASE_URL` — from step 1 (with or without the `libsql://`
+     prefix, either works)
+   - `TURSO_AUTH_TOKEN` — from step 1
+4. Deploy. The first request creates the schema and seeds demo accounts on
+   the Turso database automatically; subsequent deploys/cold-starts leave
+   existing data alone since it's a real persistent database now.
 
 ## Screenshots
 
